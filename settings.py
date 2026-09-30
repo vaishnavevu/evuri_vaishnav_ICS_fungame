@@ -1,3 +1,5 @@
+import pygame as pg
+
 # set the window width and height in pixels
 WIDTH = 1024
 HEIGHT = 768
@@ -19,3 +21,5 @@ RED = (255,0,0)
 
 # set how many pixels the player moves per second along each axis
 PLAYER_SPEED = 300
+# use a slightly smaller rectangle when checking the player against walls
+PLAYER_HIT_RECT = pg.Rect(0, 0, TILESIZE-5, TILESIZE-5)

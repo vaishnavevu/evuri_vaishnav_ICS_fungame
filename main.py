@@ -37,14 +37,13 @@ class Game:
         self.img_dir = path.join(self.game_dir, 'ímages')
         self.snd_dir = path.join(self.game_dir, 'audio')
         self.map = Map(path.join(self.game_dir, map))
-    # start a round with a sprite group and a player at the top left
+    # start a round with sprite groups and the player at the map's P
     def new(self):
         self.load_data('level1.txt')
         self.all_sprites = pg.sprite.Group()
         self.all_walls = pg.sprite.Group()
         # create a group for the enemies
         self.all_mobs = pg.sprite.Group()
-        self.player = Player(self, HEIGHT-TILESIZE, 0)
         self.wall = Wall(self, 10, 0)
         self.mob = Mob(self, 10, 10)
  
@@ -53,6 +52,12 @@ class Game:
             for col, tile in enumerate(tiles):
                 if tile == "1":
                     Wall(self, col, row)
+        # create the player after the walls so it draws on top
+        # map spawning and wall collisions are adapted from Chris Cozort
+        for row, tiles in enumerate(self.map.data):
+            for col, tile in enumerate(tiles):
+                if tile == "P":
+                    self.player = Player(self, col, row)
     # repeat the main game steps while the round is active
     def run(self):
         self.playing = True
@@ -62,8 +67,8 @@ class Game:
             # handle input, move sprites, and draw the next frame
             self.events()
 
-            self.draw()
             self.update()
+            self.draw()
     # check for window events, such as clicking the close button
     def events(self):
         for event in pg.event.get():
@@ -84,7 +89,9 @@ class Game:
 if __name__ == "__main__":
     g = Game()
  
-# start and run rounds until the game is closed
-while g.running:
-    g.new()
-    g.run()
+    # start and run rounds until the game is closed
+    while g.running:
+        g.new()
+        g.run()
+    # close pygame after the game window is closed
+    pg.quit()

@@ -7,6 +7,34 @@ from os import path
  
 # use vectors to store position and movement
 vec = pg.math.Vector2
+
+# wall collision helpers adapted from Chris Cozort's classroom game
+def collide_hit_rect(one, two):
+    # check the smaller player rectangle against the wall rectangle
+    return one.hit_rect.colliderect(two.rect)
+
+def collide_with_walls(sprite, group, direction):
+    # resolve one direction at a time so the player can slide along walls
+    hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect)
+    for wall in hits:
+        if direction == 'x':
+            if sprite.vel.x > 0:
+                sprite.hit_rect.right = wall.rect.left
+            elif sprite.vel.x < 0:
+                sprite.hit_rect.left = wall.rect.right
+        if direction == 'y':
+            if sprite.vel.y > 0:
+                sprite.hit_rect.bottom = wall.rect.top
+            elif sprite.vel.y < 0:
+                sprite.hit_rect.top = wall.rect.bottom
+    if hits:
+        # keep the position and movement lined up with the collision rectangle
+        if direction == 'x':
+            sprite.pos.x = sprite.hit_rect.centerx
+            sprite.vel.x = 0
+        if direction == 'y':
+            sprite.pos.y = sprite.hit_rect.centery
+            sprite.vel.y = 0
  
 # define the player and how it moves
 class Player(Sprite):
@@ -23,7 +51,11 @@ class Player(Sprite):
         # start with no movement in either direction
         self.vel = vec(0,0)
         # convert the starting tile position into pixels
-        self.pos = vec(x,y)
+        self.pos = vec(x*TILESIZE + TILESIZE/2, y*TILESIZE + TILESIZE/2)
+        # give each player its own collision rectangle at its starting position
+        self.hit_rect = PLAYER_HIT_RECT.copy()
+        self.hit_rect.center = self.pos
+        self.rect.center = self.pos
 
         # print a startup message and the rectangle position for checking
         print("player initialized")
@@ -33,7 +65,7 @@ class Player(Sprite):
     def get_keys(self):
 
         # reset movement so the player stops when no keys are held
-        self.vx, self.vy = 0, 0
+        self.vel = vec(0, 0)
         # read the keyboard so held keys keep the player moving
         keys = pg.key.get_pressed()
         # left arrow or a moves the player left
@@ -49,18 +81,22 @@ class Player(Sprite):
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.vel.y = PLAYER_SPEED
         # reduce the movement speed when moving diagonally
-        if self.vel != 0 and self.vel.y != 0:
+        if self.vel.x != 0 and self.vel.y != 0:
             self.vel *= 0.7071
 
     # update the player position each frame
     def update(self):
         self.get_keys()
-        self.rect.center = self.pos
-        #      self.rect.right = hits(0).rect.left
         # use time since the last frame to keep movement speed steady
         # move the drawing rectangle to the new horizontal position
+        self.pos.x += self.vel.x * self.game.dt
+        self.hit_rect.centerx = self.pos.x
+        collide_with_walls(self, self.game.all_walls, 'x')
         # move the drawing rectangle to the new vertical position
-        self.pos += self.vel * self.game.dt
+        self.pos.y += self.vel.y * self.game.dt
+        self.hit_rect.centery = self.pos.y
+        collide_with_walls(self, self.game.all_walls, 'y')
+        self.rect.center = self.hit_rect.center
 
 class Wall(Sprite):
     def __init__(self, game, x, y):
