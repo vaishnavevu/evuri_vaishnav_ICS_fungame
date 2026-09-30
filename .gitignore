@@ -1,0 +1,3 @@
+# ignore temporary files created when Python runs
+__pycache__/
+*.py[cod]

@@ -2,6 +2,8 @@
 import pygame as pg
 from settings import *
 from pygame.sprite import Sprite
+# load the helper that cuts character frames out of a sprite sheet
+from utils import Spritesheet
  
 from os import path
  
@@ -47,6 +49,12 @@ class Player(Sprite):
         # make a white square and a rectangle to track its position
         self.image = pg.Surface((TILESIZE, TILESIZE))
         self.image.fill(WHITE)
+        # load the classroom character animation over the original square
+        self.spritesheet = Spritesheet(path.join(self.game.img_dir, 'sprite_sheet.png'))
+        self.load_images()
+        self.current_frame = 0
+        self.last_update = pg.time.get_ticks()
+        self.image = self.idle_frames[self.current_frame]
         self.rect = self.image.get_rect()
         # start with no movement in either direction
         self.vel = vec(0,0)
@@ -84,9 +92,28 @@ class Player(Sprite):
         if self.vel.x != 0 and self.vel.y != 0:
             self.vel *= 0.7071
 
+    # animation adapted from Chris Cozort's classroom game
+    def load_images(self):
+        # take the first two tiles from the top row of the sprite sheet
+        self.idle_frames = [
+            self.spritesheet.get_image(0, 0, TILESIZE, TILESIZE),
+            self.spritesheet.get_image(TILESIZE, 0, TILESIZE, TILESIZE)
+        ]
+
+    def animate(self):
+        # change frames every 350 milliseconds without moving the player
+        now = pg.time.get_ticks()
+        if now - self.last_update > 350:
+            self.last_update = now
+            self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
+            center = self.rect.center
+            self.image = self.idle_frames[self.current_frame]
+            self.rect = self.image.get_rect(center=center)
+
     # update the player position each frame
     def update(self):
         self.get_keys()
+        self.animate()
         # use time since the last frame to keep movement speed steady
         # move the drawing rectangle to the new horizontal position
         self.pos.x += self.vel.x * self.game.dt
@@ -134,7 +161,7 @@ class Mob(Sprite):
  
     def update(self):
         # turn the enemy around and move it down when it leaves the screen
-        if self.rect.x > WIDTH or self.rect.x < 0:
+        if self.rect.right > WIDTH or self.rect.x < 0:
             print("I've broken out of my cage")
             self.speed *= -1
             self.y += TILESIZE

@@ -17,3 +17,17 @@ class Map:
         self.tileheight = len(self.data)
         self.width = self.tilewidth * TILESIZE
         self.height = self.tileheight * TILESIZE
+
+# sprite sheet tools adapted from Chris Cozort's classroom game
+class Spritesheet:
+    def __init__(self, filename):
+        # load the full picture once using the game window's color format
+        self.spritesheet = pg.image.load(filename).convert()
+
+    def get_image(self, x, y, width, height):
+        # copy one frame out of the larger picture
+        image = pg.Surface((width, height))
+        image.blit(self.spritesheet, (0, 0), (x, y, width, height))
+        # hide the black background around the character
+        image.set_colorkey(BLACK)
+        return image
