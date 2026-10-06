@@ -49,8 +49,8 @@ class Player(Sprite):
         # make a white square and a rectangle to track its position
         self.image = pg.Surface((TILESIZE, TILESIZE))
         self.image.fill(WHITE)
-        # load the classroom character animation over the original square
-        self.spritesheet = Spritesheet(path.join(self.game.img_dir, 'sprite_sheet.png'))
+        # load the mushroom that changes between red and green
+        self.spritesheet = Spritesheet(path.join(self.game.img_dir, 'mushroom_sheet.png'))
         self.load_images()
         self.current_frame = 0
         self.last_update = pg.time.get_ticks()
@@ -94,7 +94,7 @@ class Player(Sprite):
 
     # animation adapted from Chris Cozort's classroom game
     def load_images(self):
-        # take the first two tiles from the top row of the sprite sheet
+        # take the red mushroom first and the green mushroom second
         self.idle_frames = [
             self.spritesheet.get_image(0, 0, TILESIZE, TILESIZE),
             self.spritesheet.get_image(TILESIZE, 0, TILESIZE, TILESIZE)
