@@ -54,6 +54,8 @@ class Player(Sprite):
         self.load_images()
         self.current_frame = 0
         self.last_update = pg.time.get_ticks()
+        # start each round with no coins collected
+        self.coins = 0
         self.image = self.idle_frames[self.current_frame]
         self.rect = self.image.get_rect()
         # start with no movement in either direction
@@ -124,6 +126,10 @@ class Player(Sprite):
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.all_walls, 'y')
         self.rect.center = self.hit_rect.center
+        # remove any coins the player touches after moving
+        hits = pg.sprite.spritecollide(self, self.game.all_coins, True)
+        # count every coin collected, even if two are touched together
+        self.coins += len(hits)
 
 class Wall(Sprite):
     def __init__(self, game, x, y):
@@ -141,6 +147,23 @@ class Wall(Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
  
+# coin pickup adapted from Chris Cozort's classroom game
+class Coin(Sprite):
+    def __init__(self, game, x, y):
+        # add the coin to the drawing group and the coin group
+        self.groups = game.all_sprites, game.all_coins
+        Sprite.__init__(self, self.groups)
+        self.game = game
+        # draw a yellow circle and hide the black background
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        pg.draw.circle(self.image, YELLOW, (TILESIZE//2, TILESIZE//2), TILESIZE//2)
+        self.image.set_colorkey(BLACK)
+        self.rect = self.image.get_rect()
+        # convert the coin's map position from tiles into pixels
+        self.x = x * TILESIZE
+        self.y = y * TILESIZE
+        self.rect.topleft = (self.x, self.y)
+
 # define the enemy and how it moves
 class Mob(Sprite):
     def __init__(self, game, x, y):

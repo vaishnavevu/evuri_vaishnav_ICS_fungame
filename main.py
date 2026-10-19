@@ -42,6 +42,8 @@ class Game:
         self.load_data('level1.txt')
         self.all_sprites = pg.sprite.Group()
         self.all_walls = pg.sprite.Group()
+        # create a group to keep track of the coins left on the map
+        self.all_coins = pg.sprite.Group()
         # create a group for the enemies
         self.all_mobs = pg.sprite.Group()
         self.wall = Wall(self, 10, 0)
@@ -52,6 +54,9 @@ class Game:
             for col, tile in enumerate(tiles):
                 if tile == "1":
                     Wall(self, col, row)
+                # create a coin for each C in the map
+                if tile == "C":
+                    Coin(self, col, row)
         # create the player after the walls so it draws on top
         # map spawning and wall collisions are adapted from Chris Cozort
         for row, tiles in enumerate(self.map.data):
@@ -77,10 +82,20 @@ class Game:
                 if self.playing:
                     self.playing = False
                 self.running = False
-    # clear the old frame, draw the sprites, and show the new frame
+    # draw text centered at the chosen position on the screen
+    def draw_text(self, text, size, color, x, y):
+        font_name = pg.font.match_font('arial')
+        font = pg.font.Font(font_name, size)
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect()
+        text_rect.midtop = (x, y)
+        self.screen.blit(text_surface, text_rect)
+
     def draw(self):
         self.screen.fill(BGCOLOR)
         self.all_sprites.draw(self.screen)
+        # draw the coin count last so it shows on top of the game
+        self.draw_text(f"Coins:{self.player.coins}", 24, WHITE, WIDTH/2, HEIGHT/7)
         pg.display.flip()
     # run the update method for every sprite in the group
     def update(self):
