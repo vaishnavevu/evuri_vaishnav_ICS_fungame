@@ -36,6 +36,8 @@ class Game:
         self.game_dir = path.dirname(__file__)
         self.img_dir = path.join(self.game_dir, 'images')
         self.snd_dir = path.join(self.game_dir, 'audio')
+        # load the sound that plays when a coin is collected
+        self.pickup_snd = pg.mixer.Sound(path.join(self.snd_dir, 'pickup.wav'))
         self.map = Map(path.join(self.game_dir, map))
     # start a round with sprite groups and the player at the map's P
     def new(self):
@@ -47,13 +49,15 @@ class Game:
         # create a group for the enemies
         self.all_mobs = pg.sprite.Group()
         self.wall = Wall(self, 10, 0)
-        self.mob = Mob(self, 10, 10)
  
         # create a wall for each 1 in the map
         for row, tiles in enumerate(self.map.data):
             for col, tile in enumerate(tiles):
                 if tile == "1":
                     Wall(self, col, row)
+                # create an enemy for each M in the map
+                if tile == "M":
+                    Mob(self, col, row)
                 # create a coin for each C in the map
                 if tile == "C":
                     Coin(self, col, row)
@@ -63,6 +67,9 @@ class Game:
             for col, tile in enumerate(tiles):
                 if tile == "P":
                     self.player = Player(self, col, row)
+        # repeat the classroom background music while the round is running
+        pg.mixer.music.load(path.join(self.snd_dir, 'Juhani Junkala_Stage 1.ogg'))
+        pg.mixer.music.play(loops=-1)
     # repeat the main game steps while the round is active
     def run(self):
         self.playing = True
@@ -94,6 +101,8 @@ class Game:
     def draw(self):
         self.screen.fill(BGCOLOR)
         self.all_sprites.draw(self.screen)
+        # show the measured frame rate without dividing by zero
+        self.draw_text(f"Frames per second:{self.clock.get_fps():.0f}", 24, WHITE, WIDTH/2, HEIGHT/4)
         # draw the coin count last so it shows on top of the game
         self.draw_text(f"Coins:{self.player.coins}", 24, WHITE, WIDTH/2, HEIGHT/7)
         pg.display.flip()

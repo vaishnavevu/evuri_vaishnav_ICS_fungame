@@ -46,3 +46,6 @@ BEIGE = (245, 245, 220)
 PLAYER_SPEED = 300
 # use a slightly smaller rectangle when checking the player against walls
 PLAYER_HIT_RECT = pg.Rect(0, 0, TILESIZE-5, TILESIZE-5)
+
+# use a smaller rectangle when checking enemies against walls
+MOB_HIT_RECT = pg.Rect(0, 0, TILESIZE-5, TILESIZE-5)
