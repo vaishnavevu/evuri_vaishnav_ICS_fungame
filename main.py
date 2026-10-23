@@ -48,6 +48,8 @@ class Game:
         self.all_coins = pg.sprite.Group()
         # create a group for the enemies
         self.all_mobs = pg.sprite.Group()
+        # keep track of the particles created when coins are collected
+        self.all_particles = pg.sprite.Group()
         self.wall = Wall(self, 10, 0)
  
         # create a wall for each 1 in the map

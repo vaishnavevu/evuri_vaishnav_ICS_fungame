@@ -3,7 +3,9 @@ import pygame as pg
 from settings import *
 from pygame.sprite import Sprite
 # load the helper that cuts character frames out of a sprite sheet
-from utils import Spritesheet
+from utils import Spritesheet, Cooldown
+# choose random directions for the small coin particles
+from random import randint
  
 from os import path
  
@@ -130,6 +132,10 @@ class Player(Sprite):
         hits = pg.sprite.spritecollide(self, self.game.all_coins, True)
         # count every coin collected, even if two are touched together
         self.coins += len(hits)
+        # create a small burst at each collected coin
+        for coin in hits:
+            for _ in range(10):
+                Particle(self.game, coin.rect.centerx, coin.rect.centery)
         # play the pickup sound only when a coin was touched
         if hits:
             self.game.pickup_snd.play()
@@ -224,3 +230,30 @@ class Mob(Sprite):
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.all_walls, 'y')
         self.rect.center = self.hit_rect.center
+
+
+# particles adapted from Chris Cozort's particles and cooldown lesson
+class Particle(Sprite):
+    def __init__(self, game, x, y):
+        # draw and update particles with the other sprites
+        self.groups = game.all_sprites, game.all_particles
+        Sprite.__init__(self, self.groups)
+        self.game = game
+        # make a small white square at the coin's position in pixels
+        self.image = pg.Surface((TILESIZE//8, TILESIZE//8))
+        self.image.fill(WHITE)
+        self.pos = vec(x, y)
+        self.rect = self.image.get_rect(center=self.pos)
+        self.speed = 25
+        # remove the particle after three seconds
+        self.countdown = Cooldown(3000)
+
+    def update(self):
+        # stop updating and drawing the particle when its timer finishes
+        if self.countdown.ready():
+            self.kill()
+            return
+        # scatter in random directions using the time between frames
+        self.pos.x += self.speed * randint(-5, 5) * self.game.dt
+        self.pos.y += self.speed * randint(-5, 5) * self.game.dt
+        self.rect.center = self.pos

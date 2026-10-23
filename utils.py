@@ -31,3 +31,27 @@ class Spritesheet:
         # hide the black background around the character
         image.set_colorkey(BLACK)
         return image
+
+
+# cooldown timer adapted from Chris Cozort's particles and cooldown lesson
+class Cooldown:
+    def __init__(self, time):
+        # store the duration in milliseconds and start the timer now
+        self.time = time
+        self.start()
+
+    def start(self):
+        # restart the timer so it can be used again
+        self.start_time = pg.time.get_ticks()
+        self.current_time = self.start_time
+        self.delta = 0
+
+    def ticking(self):
+        # keep track of how many seconds have passed since the timer started
+        self.current_time = pg.time.get_ticks()
+        self.delta = (self.current_time - self.start_time) / 1000
+
+    def ready(self):
+        # check the elapsed milliseconds against the chosen duration
+        self.ticking()
+        return self.current_time - self.start_time >= self.time
