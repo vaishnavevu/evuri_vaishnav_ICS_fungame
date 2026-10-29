@@ -31,17 +31,46 @@ class Game:
         self.playing = True
         # create a clock to control the frame rate
         self.clock = pg.time.Clock()
+        # track the current score and the best score from earlier games
+        self.score = 0
+        self.high_score = 0
     # find the game folders and load the map file
     def load_data(self, map):
         self.game_dir = path.dirname(__file__)
+        # keep the saved high score in the game folder
+        self.game_save_file = path.join(self.game_dir, "highscore.txt")
         self.img_dir = path.join(self.game_dir, 'images')
         self.snd_dir = path.join(self.game_dir, 'audio')
         # load the sound that plays when a coin is collected
         self.pickup_snd = pg.mixer.Sound(path.join(self.snd_dir, 'pickup.wav'))
         self.map = Map(path.join(self.game_dir, map))
+        self.load_high_score()
+    # score saving adapted from Chris Cozort's classroom game
+    def load_high_score(self):
+        # use zero when there is no saved score or the file is not a number
+        try:
+            with open(self.game_save_file, 'r', encoding='utf-8') as file:
+                self.high_score = max(0, int(file.read()))
+        except (OSError, ValueError):
+            self.high_score = 0
+
+    def save_high_score(self):
+        # replace the saved record only when the current score is higher
+        if self.score > self.high_score:
+            try:
+                with open(self.game_save_file, 'w', encoding='utf-8') as file:
+                    file.write(str(self.score))
+            except OSError as error:
+                # let the game close normally if the score file cannot be saved
+                print(f"high score could not be saved: {error}")
+            else:
+                self.high_score = self.score
+
     # start a round with sprite groups and the player at the map's P
     def new(self):
         self.load_data('level1.txt')
+        # start the new round with no points
+        self.score = 0
         self.all_sprites = pg.sprite.Group()
         self.all_walls = pg.sprite.Group()
         # create a group to keep track of the coins left on the map
@@ -88,6 +117,8 @@ class Game:
         for event in pg.event.get():
             # stop the round and the game when the window is closed
             if event.type == pg.QUIT:
+                # save a new record before closing the game
+                self.save_high_score()
                 if self.playing:
                     self.playing = False
                 self.running = False
@@ -107,6 +138,9 @@ class Game:
         self.draw_text(f"Frames per second:{self.clock.get_fps():.0f}", 24, WHITE, WIDTH/2, HEIGHT/4)
         # draw the coin count last so it shows on top of the game
         self.draw_text(f"Coins:{self.player.coins}", 24, WHITE, WIDTH/2, HEIGHT/7)
+        # show the current score and the saved record on separate lines
+        self.draw_text(f"Score:{self.score}", 24, WHITE, WIDTH/2, 20)
+        self.draw_text(f"High Score:{self.high_score}", 24, WHITE, WIDTH/2, 50)
         pg.display.flip()
     # run the update method for every sprite in the group
     def update(self):

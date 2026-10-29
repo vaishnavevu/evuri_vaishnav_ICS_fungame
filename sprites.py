@@ -132,6 +132,8 @@ class Player(Sprite):
         hits = pg.sprite.spritecollide(self, self.game.all_coins, True)
         # count every coin collected, even if two are touched together
         self.coins += len(hits)
+        # add one point for each coin collected
+        self.game.score += len(hits)
         # create a small burst at each collected coin
         for coin in hits:
             for _ in range(10):
