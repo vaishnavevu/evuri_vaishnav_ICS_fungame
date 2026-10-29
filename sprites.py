@@ -134,9 +134,9 @@ class Player(Sprite):
         self.coins += len(hits)
         # add one point for each coin collected
         self.game.score += len(hits)
-        # create a small burst at each collected coin
+        # create one hundred particles at each collected coin
         for coin in hits:
-            for _ in range(10):
+            for _ in range(100):
                 Particle(self.game, coin.rect.centerx, coin.rect.centery)
         # play the pickup sound only when a coin was touched
         if hits:
@@ -246,16 +246,17 @@ class Particle(Sprite):
         self.image.fill(WHITE)
         self.pos = vec(x, y)
         self.rect = self.image.get_rect(center=self.pos)
-        self.speed = 25
-        # remove the particle after three seconds
-        self.countdown = Cooldown(3000)
+        # choose a random direction for each particle
+        self.vel = vec(randint(-180, 180), randint(-180, 180))
+        self.speed = 5
+        # remove the particle after two seconds
+        self.countdown = Cooldown(2000)
 
     def update(self):
         # stop updating and drawing the particle when its timer finishes
         if self.countdown.ready():
             self.kill()
             return
-        # scatter in random directions using the time between frames
-        self.pos.x += self.speed * randint(-5, 5) * self.game.dt
-        self.pos.y += self.speed * randint(-5, 5) * self.game.dt
+        # move in the same direction using the time between frames
+        self.pos += self.vel * self.speed * self.game.dt
         self.rect.center = self.pos
