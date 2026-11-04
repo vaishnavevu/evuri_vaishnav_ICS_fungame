@@ -39,6 +39,7 @@ def collide_with_walls(sprite, group, direction):
         if direction == 'y':
             sprite.pos.y = sprite.hit_rect.centery
             sprite.vel.y = 0
+    return bool(hits)
  
 # define the player and how it moves
 class Player(Sprite):
@@ -64,6 +65,9 @@ class Player(Sprite):
         self.vel = vec(0,0)
         # keep track of the force changing the player movement
         self.acc = vec(0,0)
+        # load the classroom jump sound and start on the ground
+        self.jump_sound = pg.mixer.Sound(path.join(self.game.snd_dir, 'Jump33.wav'))
+        self.jumping = False
         # convert the starting tile position into pixels
         self.pos = vec(x*TILESIZE + TILESIZE/2, y*TILESIZE + TILESIZE/2)
         # give each player its own collision rectangle at its starting position
@@ -94,6 +98,20 @@ class Player(Sprite):
         # down arrow or s moves the player down
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.acc.y = PLAYER_ACC
+
+        # press space to jump from the top of a wall
+        if keys[pg.K_SPACE]:
+            self.jump()
+
+    # jumping adapted from Chris Cozort's classroom game
+    def jump(self):
+        # look just below the feet so touching a side wall does not allow a jump
+        feet = pg.Rect(self.hit_rect.left, self.hit_rect.bottom, self.hit_rect.width, 2)
+        grounded = any(feet.colliderect(wall.rect) for wall in self.game.all_walls)
+        if grounded and not self.jumping and self.vel.y >= 0:
+            self.jump_sound.play()
+            self.jumping = True
+            self.vel.y = -PLAYER_JUMP
 
     # animation adapted from Chris Cozort's classroom game
     def load_images(self):
@@ -134,7 +152,10 @@ class Player(Sprite):
         # move the drawing rectangle to the new vertical position
         self.pos.y += movement.y
         self.hit_rect.centery = self.pos.y
-        collide_with_walls(self, self.game.all_walls, 'y')
+        # allow another jump after falling onto a platform
+        falling = self.vel.y > 0
+        if collide_with_walls(self, self.game.all_walls, 'y') and falling:
+            self.jumping = False
         self.rect.center = self.hit_rect.center
         # remove any coins the player touches after moving
         hits = pg.sprite.spritecollide(self, self.game.all_coins, True)

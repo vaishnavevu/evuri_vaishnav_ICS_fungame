@@ -46,6 +46,8 @@ BEIGE = (245, 245, 220)
 PLAYER_ACC = 2
 PLAYER_GRAV = 4
 PLAYER_FRIC = -0.12
+# set the upward speed when the player jumps
+PLAYER_JUMP = 50
 # use a slightly smaller rectangle when checking the player against walls
 PLAYER_HIT_RECT = pg.Rect(0, 0, TILESIZE-5, TILESIZE-5)
 
