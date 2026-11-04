@@ -42,8 +42,10 @@ PINK = (255, 192, 203)
 BROWN = (139, 69, 19)
 BEIGE = (245, 245, 220)
 
-# set how many pixels the player moves per second along each axis
-PLAYER_SPEED = 300
+# set acceleration, gravity, and friction for the classroom movement
+PLAYER_ACC = 2
+PLAYER_GRAV = 4
+PLAYER_FRIC = -0.12
 # use a slightly smaller rectangle when checking the player against walls
 PLAYER_HIT_RECT = pg.Rect(0, 0, TILESIZE-5, TILESIZE-5)
 

@@ -62,6 +62,8 @@ class Player(Sprite):
         self.rect = self.image.get_rect()
         # start with no movement in either direction
         self.vel = vec(0,0)
+        # keep track of the force changing the player movement
+        self.acc = vec(0,0)
         # convert the starting tile position into pixels
         self.pos = vec(x*TILESIZE + TILESIZE/2, y*TILESIZE + TILESIZE/2)
         # give each player its own collision rectangle at its starting position
@@ -76,25 +78,22 @@ class Player(Sprite):
     # check which movement keys are held down
     def get_keys(self):
 
-        # reset movement so the player stops when no keys are held
-        self.vel = vec(0, 0)
+        # start with gravity before adding keyboard movement
+        self.acc = vec(0, PLAYER_GRAV)
         # read the keyboard so held keys keep the player moving
         keys = pg.key.get_pressed()
         # left arrow or a moves the player left
         if keys[pg.K_LEFT] or keys[pg.K_a]:
-            self.vel.x = -PLAYER_SPEED
+            self.acc.x = -PLAYER_ACC
         # right arrow or d moves the player right
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
-            self.vel.x = PLAYER_SPEED
+            self.acc.x = PLAYER_ACC
         # up arrow or w moves the player up
         if keys[pg.K_UP] or keys[pg.K_w]:
-            self.vel.y = -PLAYER_SPEED
+            self.acc.y = -PLAYER_ACC
         # down arrow or s moves the player down
         if keys[pg.K_DOWN] or keys[pg.K_s]:
-            self.vel.y = PLAYER_SPEED
-        # reduce the movement speed when moving diagonally
-        if self.vel.x != 0 and self.vel.y != 0:
-            self.vel *= 0.7071
+            self.acc.y = PLAYER_ACC
 
     # animation adapted from Chris Cozort's classroom game
     def load_images(self):
@@ -118,13 +117,22 @@ class Player(Sprite):
     def update(self):
         self.get_keys()
         self.animate()
-        # use time since the last frame to keep movement speed steady
-        # move the drawing rectangle to the new horizontal position
-        self.pos.x += self.vel.x * self.game.dt
+        # apply friction so movement slows down when keys are released
+        self.acc += self.vel * PLAYER_FRIC
+        # scale the classroom physics to the time between frames
+        step = min(self.game.dt * FPS, 1)
+        self.vel += self.acc * step
+        if abs(self.vel.x) < 0.1:
+            self.vel.x = 0
+        if abs(self.vel.y) < 0.1:
+            self.vel.y = 0
+        movement = self.vel * step + 0.5 * self.acc * step * step
+        # check horizontal movement before vertical movement
+        self.pos.x += movement.x
         self.hit_rect.centerx = self.pos.x
         collide_with_walls(self, self.game.all_walls, 'x')
         # move the drawing rectangle to the new vertical position
-        self.pos.y += self.vel.y * self.game.dt
+        self.pos.y += movement.y
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.all_walls, 'y')
         self.rect.center = self.hit_rect.center
