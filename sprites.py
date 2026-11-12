@@ -68,6 +68,9 @@ class Player(Sprite):
         # load the classroom jump sound and start on the ground
         self.jump_sound = pg.mixer.Sound(path.join(self.game.snd_dir, 'Jump33.wav'))
         self.jumping = False
+        # put one coal block beside the player to practice mining
+        self.coal = Coal(game, x - 1, y)
+        self.mine_pressed = False
         # convert the starting tile position into pixels
         self.pos = vec(x*TILESIZE + TILESIZE/2, y*TILESIZE + TILESIZE/2)
         # give each player its own collision rectangle at its starting position
@@ -99,8 +102,13 @@ class Player(Sprite):
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.acc.y = PLAYER_ACC
 
-        # press space to jump from the top of a wall
-        if keys[pg.K_SPACE]:
+        # hit the coal once each time space is pressed
+        if keys[pg.K_SPACE] and not self.mine_pressed:
+            if self.coal.alive() and self.rect.inflate(16, 16).colliderect(self.coal.rect):
+                self.coal.mine()
+        self.mine_pressed = keys[pg.K_SPACE]
+        # use j to jump while space is used for mining
+        if keys[pg.K_j]:
             self.jump()
 
     # jumping adapted from Chris Cozort's classroom game
@@ -290,3 +298,26 @@ class Particle(Sprite):
         # move in the same direction using the time between frames
         self.pos += self.vel * self.speed * self.game.dt
         self.rect.center = self.pos
+
+
+# one simple coal block for the first mining feature
+class Coal(Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites
+        Sprite.__init__(self, self.groups)
+        self.game = game
+        # the coal takes three hits before it breaks
+        self.hits = 0
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image.fill(GRAY)
+        pg.draw.rect(self.image, BLACK, (6, 6, 20, 20))
+        self.rect = self.image.get_rect(topleft=(x * TILESIZE, y * TILESIZE))
+
+    def mine(self):
+        self.hits += 1
+        self.game.pickup_snd.play()
+        # draw another crack after each hit
+        pg.draw.line(self.image, WHITE, (16, 4), (8 * self.hits, 28), 2)
+        # remove the coal after the third hit
+        if self.hits == 3:
+            self.kill()
