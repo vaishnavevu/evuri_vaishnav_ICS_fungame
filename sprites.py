@@ -85,8 +85,8 @@ class Player(Sprite):
     # check which movement keys are held down
     def get_keys(self):
 
-        # start with gravity before adding keyboard movement
-        self.acc = vec(0, PLAYER_GRAV)
+        # start with no force before adding keyboard movement
+        self.acc = vec(0, 0)
         # read the keyboard so held keys keep the player moving
         keys = pg.key.get_pressed()
         # left arrow or a moves the player left
