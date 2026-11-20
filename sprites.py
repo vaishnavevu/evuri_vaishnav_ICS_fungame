@@ -70,8 +70,6 @@ class Player(Sprite):
         # load the classroom jump sound and start on the ground
         self.jump_sound = pg.mixer.Sound(path.join(self.game.snd_dir, 'Jump33.wav'))
         self.jumping = False
-        # put one coal block beside the player to practice mining
-        self.coal = Coal(game, x - 1, y)
         self.mine_pressed = False
         # face down until an arrow key changes the mining direction
         self.facing = vec(0, 1)

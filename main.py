@@ -81,7 +81,6 @@ class Game:
         self.all_mobs = pg.sprite.Group()
         # keep track of the particles created when coins are collected
         self.all_particles = pg.sprite.Group()
-        self.wall = Wall(self, 10, 0)
  
         # create a wall for each 1 in the map
         for row, tiles in enumerate(self.map.data):
@@ -94,8 +93,12 @@ class Game:
                 # create an enemy for each M in the map
                 if tile == "M":
                     Mob(self, col, row)
-                # create a coin for each C in the map
+                # place coal wherever the map has a K
+                if tile == "K":
+                    Coal(self, col, row)
+                # place gold inside dirt so it has to be dug out
                 if tile == "C":
+                    Dirt(self, col, row)
                     Coin(self, col, row)
         # create the player after the walls so it draws on top
         # map spawning and wall collisions are adapted from Chris Cozort
@@ -138,16 +141,22 @@ class Game:
 
     def draw(self):
         self.screen.fill(BGCOLOR)
+        # keep the top quarter grassy and the tunnels dark brown
+        pg.draw.rect(self.screen, (66, 119, 48), (0, 0, WIDTH, HEIGHT/4))
+        # draw a few short grass marks across the surface
+        for x in range(32, WIDTH - 32, 64):
+            pg.draw.line(self.screen, (96, 151, 64), (x, 110), (x + 3, 102), 2)
+            pg.draw.line(self.screen, (96, 151, 64), (x + 20, 175), (x + 23, 167), 2)
         self.all_sprites.draw(self.screen)
-        # show the measured frame rate without dividing by zero
-        self.draw_text(f"Frames per second:{self.clock.get_fps():.0f}", 24, WHITE, WIDTH/2, HEIGHT/4)
-        # draw the coin count last so it shows on top of the game
-        self.draw_text(f"Gold nuggets:{self.player.coins}", 24, WHITE, WIDTH/2, HEIGHT/7)
-        # show how many coal blocks the player has mined
-        self.draw_text(f"Coal:{self.player.coal_count}", 24, WHITE, WIDTH/2, HEIGHT/7 + 30)
-        # show the current score and the saved record on separate lines
-        self.draw_text(f"Score:{self.score}", 24, WHITE, WIDTH/2, 20)
-        self.draw_text(f"High Score:{self.high_score}", 24, WHITE, WIDTH/2, 50)
+        # keep the counters on a dark strip above the play area
+        pg.draw.rect(self.screen, BGCOLOR, (32, 32, WIDTH - 64, 56))
+        self.draw_text(f"Score:{self.score}", 22, WHITE, 130, 34)
+        self.draw_text(f"High Score:{self.high_score}", 22, WHITE, 330, 34)
+        self.draw_text(f"Gold nuggets:{self.player.coins}", 22, WHITE, 570, 34)
+        self.draw_text(f"Coal:{self.player.coal_count}", 22, WHITE, 780, 34)
+        # remind the player how to move and dig
+        self.draw_text("Arrow keys: move and face a block    Space: mine", 18, WHITE, WIDTH/2, 62)
+        self.draw_text(f"FPS:{self.clock.get_fps():.0f}", 16, WHITE, 925, 38)
         pg.display.flip()
     # run the update method for every sprite in the group
     def update(self):
