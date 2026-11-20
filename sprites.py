@@ -67,9 +67,6 @@ class Player(Sprite):
         self.vel = vec(0,0)
         # keep track of the force changing the player movement
         self.acc = vec(0,0)
-        # load the classroom jump sound and start on the ground
-        self.jump_sound = pg.mixer.Sound(path.join(self.game.snd_dir, 'Jump33.wav'))
-        self.jumping = False
         self.mine_pressed = False
         # face down until an arrow key changes the mining direction
         self.facing = vec(0, 1)
@@ -80,10 +77,6 @@ class Player(Sprite):
         self.hit_rect.center = self.pos
         self.rect.center = self.pos
 
-        # print a startup message and the rectangle position for checking
-        print("player initialized")
-        print(self.rect.x)
-        print(self.rect.y)
     # check which movement keys are held down
     def get_keys(self):
 
@@ -112,9 +105,6 @@ class Player(Sprite):
         if keys[pg.K_SPACE] and not self.mine_pressed:
             self.mine_block()
         self.mine_pressed = keys[pg.K_SPACE]
-        # use j to jump while space is used for mining
-        if keys[pg.K_j]:
-            self.jump()
 
     def mine_block(self):
         # check a short distance in front of the player
@@ -123,16 +113,6 @@ class Player(Sprite):
             if block.rect.collidepoint(target):
                 block.mine()
                 break
-
-    # jumping adapted from Chris Cozort's classroom game
-    def jump(self):
-        # look just below the feet so touching a side wall does not allow a jump
-        feet = pg.Rect(self.hit_rect.left, self.hit_rect.bottom, self.hit_rect.width, 2)
-        grounded = any(feet.colliderect(wall.rect) for wall in self.game.all_walls)
-        if grounded and not self.jumping and self.vel.y >= 0:
-            self.jump_sound.play()
-            self.jumping = True
-            self.vel.y = -PLAYER_JUMP
 
     # animation adapted from Chris Cozort's classroom game
     def load_images(self):
@@ -173,10 +153,8 @@ class Player(Sprite):
         # move the drawing rectangle to the new vertical position
         self.pos.y += movement.y
         self.hit_rect.centery = self.pos.y
-        # allow another jump after falling onto a platform
-        falling = self.vel.y > 0
-        if collide_with_walls(self, self.game.all_walls, 'y') and falling:
-            self.jumping = False
+        # stop vertical movement when a solid block is in the way
+        collide_with_walls(self, self.game.all_walls, 'y')
         self.rect.center = self.hit_rect.center
         # remove any coins the player touches after moving
         hits = pg.sprite.spritecollide(self, self.game.all_coins, False)
@@ -202,7 +180,7 @@ class Wall(Sprite):
         self.groups = game.all_sprites, game.all_walls
         Sprite.__init__(self, self.groups)
         self.game = game
-        # make a white square and a rectangle to track its position
+        # make a stone block and a rectangle to track its position
         self.image = pg.Surface((TILESIZE, TILESIZE))
         self.image.fill(STONE)
         # outline the stone blocks so the walls are easy to see
@@ -242,56 +220,6 @@ class Coin(Sprite):
             self.last_update = now
             self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
             self.image = self.idle_frames[self.current_frame]
-
-# enemy chasing and animation adapted from Chris Cozort's classroom game
-class Mob(Sprite):
-    def __init__(self, game, x, y):
-        # keep enemies in both the drawing group and the enemy group
-        self.groups = game.all_sprites, game.all_mobs
-        Sprite.__init__(self, self.groups)
-        self.game = game
-        self.spritesheet = Spritesheet(path.join(self.game.img_dir, 'classroom_sheet.png'))
-        # use the classroom enemy frames while keeping the player's mushroom
-        self.idle_frames = [self.spritesheet.get_image(64, 0, TILESIZE, TILESIZE),
-                            self.spritesheet.get_image(96, 0, TILESIZE, TILESIZE)]
-        for frame in self.idle_frames:
-            frame.set_colorkey(BLACK)
-        self.current_frame = 0
-        self.last_update = pg.time.get_ticks()
-        self.image = self.idle_frames[self.current_frame]
-        self.pos = vec(x*TILESIZE + TILESIZE/2, y*TILESIZE + TILESIZE/2)
-        self.rect = self.image.get_rect(center=self.pos)
-        # give each enemy its own rectangle for checking walls
-        self.hit_rect = MOB_HIT_RECT.copy()
-        self.hit_rect.center = self.pos
-        self.speed = 100
-        self.vel = vec(0, 0)
-
-    def chase(self, obj):
-        # move toward the player without stepping past them in one frame
-        offset = obj.pos - self.pos
-        self.vel = vec(0, 0)
-        if self.game.dt > 0:
-            self.vel.x = max(-self.speed, min(self.speed, offset.x / self.game.dt))
-            self.vel.y = max(-self.speed, min(self.speed, offset.y / self.game.dt))
-
-    def update(self):
-        # change enemy frames on the same timer as the coins
-        now = pg.time.get_ticks()
-        if now - self.last_update > 350:
-            self.last_update = now
-            self.current_frame = (self.current_frame + 1) % len(self.idle_frames)
-            self.image = self.idle_frames[self.current_frame]
-        self.chase(self.game.player)
-        # check each direction separately so enemies cannot pass through walls
-        self.pos.x += self.vel.x * self.game.dt
-        self.hit_rect.centerx = self.pos.x
-        collide_with_walls(self, self.game.all_walls, 'x')
-        self.pos.y += self.vel.y * self.game.dt
-        self.hit_rect.centery = self.pos.y
-        collide_with_walls(self, self.game.all_walls, 'y')
-        self.rect.center = self.hit_rect.center
-
 
 # particles adapted from Chris Cozort's particles and cooldown lesson
 class Particle(Sprite):

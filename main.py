@@ -29,7 +29,6 @@ class Game:
         pg.mixer.init()
         # create the game window using the chosen size and title
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
-        print("game initialized...")
         pg.display.set_caption(TITLE)
         # track whether the game and the current round are running
         self.running = True
@@ -82,8 +81,6 @@ class Game:
         self.all_mineable = pg.sprite.Group()
         # create a group to keep track of the coins left on the map
         self.all_coins = pg.sprite.Group()
-        # create a group for the enemies
-        self.all_mobs = pg.sprite.Group()
         # keep track of the particles created when coins are collected
         self.all_particles = pg.sprite.Group()
  
@@ -95,9 +92,6 @@ class Game:
                 # create breakable dirt for each D in the map
                 if tile == "D":
                     Dirt(self, col, row)
-                # create an enemy for each M in the map
-                if tile == "M":
-                    Mob(self, col, row)
                 # place coal wherever the map has a K
                 if tile == "K":
                     Coal(self, col, row)
