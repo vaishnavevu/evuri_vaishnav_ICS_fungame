@@ -73,6 +73,8 @@ class Player(Sprite):
         # put one coal block beside the player to practice mining
         self.coal = Coal(game, x - 1, y)
         self.mine_pressed = False
+        # face down until an arrow key changes the mining direction
+        self.facing = vec(0, 1)
         # convert the starting tile position into pixels
         self.pos = vec(x*TILESIZE + TILESIZE/2, y*TILESIZE + TILESIZE/2)
         # give each player its own collision rectangle at its starting position
@@ -94,24 +96,35 @@ class Player(Sprite):
         # left arrow or a moves the player left
         if keys[pg.K_LEFT] or keys[pg.K_a]:
             self.acc.x = -PLAYER_ACC
+            self.facing = vec(-1, 0)
         # right arrow or d moves the player right
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
             self.acc.x = PLAYER_ACC
+            self.facing = vec(1, 0)
         # up arrow or w moves the player up
         if keys[pg.K_UP] or keys[pg.K_w]:
             self.acc.y = -PLAYER_ACC
+            self.facing = vec(0, -1)
         # down arrow or s moves the player down
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.acc.y = PLAYER_ACC
+            self.facing = vec(0, 1)
 
-        # hit the coal once each time space is pressed
+        # mine just one nearby block each time space is pressed
         if keys[pg.K_SPACE] and not self.mine_pressed:
-            if self.coal.alive() and self.rect.inflate(16, 16).colliderect(self.coal.rect):
-                self.coal.mine()
+            self.mine_block()
         self.mine_pressed = keys[pg.K_SPACE]
         # use j to jump while space is used for mining
         if keys[pg.K_j]:
             self.jump()
+
+    def mine_block(self):
+        # check a short distance in front of the player
+        target = self.pos + self.facing * (TILESIZE / 2 + 6)
+        for block in self.game.all_mineable:
+            if block.rect.collidepoint(target):
+                block.mine()
+                break
 
     # jumping adapted from Chris Cozort's classroom game
     def jump(self):
@@ -168,7 +181,12 @@ class Player(Sprite):
             self.jumping = False
         self.rect.center = self.hit_rect.center
         # remove any coins the player touches after moving
-        hits = pg.sprite.spritecollide(self, self.game.all_coins, True)
+        hits = pg.sprite.spritecollide(self, self.game.all_coins, False)
+        # dig out the dirt covering a nugget before collecting it
+        hits = [coin for coin in hits if not any(coin.rect.colliderect(wall.rect)
+                for wall in self.game.all_walls)]
+        for coin in hits:
+            coin.kill()
         # count every coin collected, even if two are touched together
         self.coins += len(hits)
         # add one point for each coin collected
@@ -306,10 +324,30 @@ class Particle(Sprite):
         self.rect.center = self.pos
 
 
-# one simple coal block for the first mining feature
+# dirt blocks make tunnels when the player mines them
+class Dirt(Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.all_walls, game.all_mineable
+        Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image.fill((112, 74, 44))
+        # add a darker edge and a few small stones to the dirt
+        pg.draw.rect(self.image, (86, 55, 33), self.image.get_rect(), 1)
+        pg.draw.rect(self.image, (146, 101, 62), (6, 8, 5, 3))
+        pg.draw.rect(self.image, (86, 55, 33), (22, 21, 4, 3))
+        self.rect = self.image.get_rect(topleft=(x * TILESIZE, y * TILESIZE))
+
+    def mine(self):
+        # one press clears the dirt from the drawing and wall groups
+        self.game.pickup_snd.play()
+        self.kill()
+
+
+# coal blocks take three hits before they can be collected
 class Coal(Sprite):
     def __init__(self, game, x, y):
-        self.groups = game.all_sprites
+        self.groups = game.all_sprites, game.all_walls, game.all_mineable
         Sprite.__init__(self, self.groups)
         self.game = game
         # the coal takes three hits before it breaks

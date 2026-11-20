@@ -73,6 +73,8 @@ class Game:
         self.score = 0
         self.all_sprites = pg.sprite.Group()
         self.all_walls = pg.sprite.Group()
+        # keep dirt and coal together for the spacebar mining check
+        self.all_mineable = pg.sprite.Group()
         # create a group to keep track of the coins left on the map
         self.all_coins = pg.sprite.Group()
         # create a group for the enemies
@@ -86,6 +88,9 @@ class Game:
             for col, tile in enumerate(tiles):
                 if tile == "1":
                     Wall(self, col, row)
+                # create breakable dirt for each D in the map
+                if tile == "D":
+                    Dirt(self, col, row)
                 # create an enemy for each M in the map
                 if tile == "M":
                     Mob(self, col, row)
