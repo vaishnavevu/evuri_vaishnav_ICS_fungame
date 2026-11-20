@@ -4,14 +4,18 @@ import pygame as pg
 WIDTH = 1024
 HEIGHT = 768
 # set the text shown at the top of the game window
-TITLE = "Best game evah!!!"
+TITLE = "Pocket Mine"
 # set the tile size and the size of the player square in pixels
 TILESIZE = 32
 # set the target number of frames per second
 FPS = 30
 
 # colors use red, green, and blue values from 0 to 255
-BGCOLOR = (255, 100, 100)
+# use dark earth for the mine floor
+BGCOLOR = (43, 35, 29)
+# use gray stone and lighter edges for the cave walls
+STONE = (92, 86, 78)
+STONE_EDGE = (129, 119, 103)
 # use white for the player square
 WHITE = (255,255,255)
 #used for green sqaure

@@ -186,7 +186,9 @@ class Wall(Sprite):
         self.game = game
         # make a white square and a rectangle to track its position
         self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(GREEN)
+        self.image.fill(STONE)
+        # outline the stone blocks so the walls are easy to see
+        pg.draw.rect(self.image, STONE_EDGE, self.image.get_rect(), 2)
         self.rect = self.image.get_rect()
         # start with no movement in either direction
         self.x = x * TILESIZE
