@@ -1,12 +1,17 @@
-# This file was created by Vaishnav evuri
-# Code inspired by Chris bradfield who was inspired by Notch
-# Data types: boolean, JSON, strings,
-# Input (events): Keyboard, mouse, right click, voice, power button, eye tracking, camera, gyroscoping,
-# electrostatic, location, volume button, microphone,
-# Process: Cursor position, position of the player, score, enemy position,
-# Aim in FPS,
-# Output: Graphics - things are drawn, sound: jump, walking, power up,
-# haptics
+# Pocket Mine design goals
+# 1. map and collisions: explore grass above ground and dig tunnels through dirt.
+# 2. mining controls: face a block with the arrows and press space to mine it.
+# 3. scoring and feedback: collect ore, update counters, and show cracks and particles.
+# goal: collect coal and gold to increase the score and beat the saved high score.
+# rules: dirt takes one press, coal takes three hits, and stone walls cannot break.
+# rules: coal gives five points and gold gives one point after its dirt is cleared.
+# feedback: mining sounds, coal cracks, gold particles, and counters show progress.
+# freedom: choose where to dig and which ore to collect without a time limit.
+# beta plans: add a five-piece bag, a shop, and rarer ores deeper underground.
+# project by Vaishnav Evuri, adapted from Chris Cozort's classroom engine.
+# original tutorial credit: Chris Bradfield at Kids Can Code.
+# class source: https://github.com/ccozort/cozort_chris_ICP_featherblade
+
 # load pygame, the player code, and the game settings
 import pygame as pg
 from os import path
