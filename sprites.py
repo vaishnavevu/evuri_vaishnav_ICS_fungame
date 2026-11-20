@@ -324,4 +324,6 @@ class Coal(Sprite):
         pg.draw.line(self.image, WHITE, (16, 4), (8 * self.hits, 28), 2)
         # remove the coal after the third hit
         if self.hits == 3:
+            # add five points for mining the whole coal block
+            self.game.score += 5
             self.kill()
