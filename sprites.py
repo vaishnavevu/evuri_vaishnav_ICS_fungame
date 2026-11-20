@@ -59,6 +59,8 @@ class Player(Sprite):
         self.last_update = pg.time.get_ticks()
         # start each round with no coins collected
         self.coins = 0
+        # start each round with no coal mined
+        self.coal_count = 0
         self.image = self.idle_frames[self.current_frame]
         self.rect = self.image.get_rect()
         # start with no movement in either direction
@@ -326,4 +328,6 @@ class Coal(Sprite):
         if self.hits == 3:
             # add five points for mining the whole coal block
             self.game.score += 5
+            # count the coal after the whole block breaks
+            self.game.player.coal_count += 1
             self.kill()
