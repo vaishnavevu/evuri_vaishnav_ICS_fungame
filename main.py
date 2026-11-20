@@ -137,7 +137,7 @@ class Game:
         # show the measured frame rate without dividing by zero
         self.draw_text(f"Frames per second:{self.clock.get_fps():.0f}", 24, WHITE, WIDTH/2, HEIGHT/4)
         # draw the coin count last so it shows on top of the game
-        self.draw_text(f"Coins:{self.player.coins}", 24, WHITE, WIDTH/2, HEIGHT/7)
+        self.draw_text(f"Gold nuggets:{self.player.coins}", 24, WHITE, WIDTH/2, HEIGHT/7)
         # show the current score and the saved record on separate lines
         self.draw_text(f"Score:{self.score}", 24, WHITE, WIDTH/2, 20)
         self.draw_text(f"High Score:{self.high_score}", 24, WHITE, WIDTH/2, 50)

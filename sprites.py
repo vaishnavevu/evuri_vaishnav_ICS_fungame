@@ -204,12 +204,14 @@ class Coin(Sprite):
         self.groups = game.all_sprites, game.all_coins
         Sprite.__init__(self, self.groups)
         self.game = game
-        # load the two coin frames from the classroom sprite sheet
-        self.spritesheet = Spritesheet(path.join(self.game.img_dir, 'classroom_sheet.png'))
-        self.idle_frames = [self.spritesheet.get_image(64, 0, TILESIZE, TILESIZE),
-                            self.spritesheet.get_image(96, 0, TILESIZE, TILESIZE)]
-        for frame in self.idle_frames:
-            frame.set_colorkey(BLACK)
+        # draw two simple gold nugget frames with different highlights
+        self.idle_frames = []
+        for shine in (GOLD, BEIGE):
+            frame = pg.Surface((TILESIZE, TILESIZE), pg.SRCALPHA)
+            pg.draw.polygon(frame, ORANGE, [(5, 22), (7, 12), (17, 5), (26, 12), (27, 24), (15, 28)])
+            pg.draw.polygon(frame, GOLD, [(8, 20), (10, 12), (18, 8), (24, 14), (22, 22), (15, 25)])
+            pg.draw.rect(frame, shine, (12, 12, 5, 5))
+            self.idle_frames.append(frame)
         self.current_frame = 0
         self.last_update = pg.time.get_ticks()
         self.image = self.idle_frames[self.current_frame]
@@ -280,9 +282,9 @@ class Particle(Sprite):
         self.groups = game.all_sprites, game.all_particles
         Sprite.__init__(self, self.groups)
         self.game = game
-        # make a small white square at the coin's position in pixels
+        # make gold chips where the nugget was collected
         self.image = pg.Surface((TILESIZE//8, TILESIZE//8))
-        self.image.fill(WHITE)
+        self.image.fill(GOLD)
         self.pos = vec(x, y)
         self.rect = self.image.get_rect(center=self.pos)
         # choose a random direction for each particle
